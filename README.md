@@ -43,3 +43,79 @@ Print the accuracy
 
 
  PROGRAM:
+ ```
+ import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+class Perceptron:
+  def _init_(self,learning_rate=0.1):
+      self.learning_rate = learning_rate
+      self._b = 0.0  #y-intercept
+      self._w = None # weights assigned to input features
+      self.misclassified_samples = []
+  def fit(self, x: np.array, y: np.array, n_iter=10):
+      self._b = 0.0
+      self._w = np.zeros(x.shape[1])
+      self.misclassified_samples = []
+      for _ in range(n_iter):
+          # counter of the errors during this training interaction
+          errors = 0
+          for xi, yi in zip(x,y):
+              update = self.learning_rate * (yi - self.predict(xi))
+              self._b += update
+              self._w += update * xi
+              errors += int(update != 0.0)
+          self.misclassified_samples.append(errors)
+  def f(self, x: np.array) -> float:
+      return np.dot(x, self._w) + self._b
+  def predict(self, x: np.array):
+      return np.where(self.f(x) >= 0,1,-1)
+
+df = pd.read_csv('IRIS.csv')
+print(df.head())
+# extract the label column
+y = df.iloc[:,4].values
+# extract features
+x = df.iloc[:,0:3].values
+#reduce dimensionality of the data
+x = x[0:100, 0:2]
+y = y[0:100]
+#plot Iris Setosa samples
+plt.scatter(x[:50,0], x[:50,1], color='orange', marker='o', label='Setosa')
+#plot Iris Versicolour samples
+plt.scatter(x[50:100,0], x[50:100,1], color='blue', marker='x', label='Versicolour')
+#show the legend
+plt.xlabel("Sepal length")
+plt.ylabel("Petal length")
+plt.legend(loc='upper left')
+#show the plot
+plt.show()
+#map the labels to a binary integer value
+y = np.where(y == 'Iris-Setosa',1,-1)
+x[:,0] = (x[:,0] - x[:,0].mean()) / x[:,0].std()
+x[:,1] = (x[:,1] - x[:,1].mean()) / x[:,1].std()
+# split the data
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25,random_state=0)
+# train the model
+classifier = Perceptron(learning_rate=0.01)
+classifier.fit(x_train, y_train)
+print("accuracy",accuracy_score(classifier.predict(x_test),y_test)*100)
+# plot the number of errors during each iteration
+plt.plot(range(1,len(classifier.misclassified_samples)+1),classifier.misclassified_samples, marker='o')
+plt.xlabel('Epoch')
+plt.ylabel('Errors')
+plt.show()
+```
+ 
+## Output
+![neural ex2 1](https://user-images.githubusercontent.com/119421232/232794285-adcf772f-6ca6-4ace-8953-03fc23c797db.png)
+
+![neural ex2 2](https://user-images.githubusercontent.com/119421232/232794405-70430864-4cd3-4d5a-aa43-45a9a194dc1f.png)
+
+
+## Result
+Thus a perceptron for classification is implemented using python.
